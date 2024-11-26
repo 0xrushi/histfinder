@@ -13,6 +13,7 @@ import json
 import argparse
 import subprocess
 import pyautogui
+from typing import List, Tuple, Set, Dict, Any, Optional
 
 load_dotenv()
 
@@ -32,7 +33,7 @@ load_dotenv()
     
 #     return paths
 
-def read_zsh_history(file_path=None):
+def read_zsh_history(file_path: Optional[str] = None) -> List[str]:
     history_path = Path(file_path if file_path else os.path.expanduser("~/.zsh_history"))
     if not history_path.exists():
         return []
@@ -76,7 +77,7 @@ async def rebuild_description(command: str) -> str:
 
     return response.choices[0].message.content.strip()
 
-def load_existing_results(output_file: str) -> tuple[pd.DataFrame, set[str]]:
+def load_existing_results(output_file: str) -> Tuple[pd.DataFrame, Set[str]]:
     """Load existing results and return processed commands."""
     try:
         df = pd.read_csv(output_file)
@@ -84,7 +85,11 @@ def load_existing_results(output_file: str) -> tuple[pd.DataFrame, set[str]]:
     except (FileNotFoundError, pd.errors.EmptyDataError):
         return pd.DataFrame(columns=['command', 'description']), set()
 
-async def generate_db(commands, clean_commands, processed_commands):
+async def generate_db(
+    commands: List[str], 
+    clean_commands: List[Dict[str, str]], 
+    processed_commands: Set[str]
+) -> None:
     """Generate a database of commands with their descriptions.
     
     Args:
@@ -117,7 +122,7 @@ async def generate_db(commands, clean_commands, processed_commands):
     df = pd.DataFrame(clean_commands)
     df.to_csv(output_file, index=None)
 
-async def search_commands(query: str, vectorstore):
+async def search_commands(query: str, vectorstore: Chroma) -> Optional[str]:
     """Search for commands matching the query."""
     retriever = vectorstore.as_retriever(search_kwargs={"k": 1})
     results = retriever.invoke(query)
@@ -127,7 +132,7 @@ async def search_commands(query: str, vectorstore):
         return res['command']
     return None
 
-async def main():
+async def main() -> None:
     parser = argparse.ArgumentParser(
         prog='histfinder',
         description='Search through command history using natural language'
@@ -187,9 +192,9 @@ async def main():
     except Exception as e:
         print(f"Error: {e}")
 
-def run_async_main():
+def run_async_main() -> None:
     asyncio.run(main())
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    run_async_main()
     
