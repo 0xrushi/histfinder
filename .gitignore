@@ -1,0 +1,10 @@
+__pycache__
+hf.egg-info
+histfinder.egg-info
+hf.egg-info
+test.ipynb
+dist
+*.egg
+clean_commands_with_description_v0.csv
+.vscode/settings.json
+.env
