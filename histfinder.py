@@ -32,8 +32,8 @@ load_dotenv()
     
 #     return paths
 
-def read_zsh_history():
-    history_path = Path(os.path.expanduser("~/.zsh_history"))
+def read_zsh_history(file_path=None):
+    history_path = Path(file_path if file_path else os.path.expanduser("~/.zsh_history"))
     if not history_path.exists():
         return []
     commands = []
@@ -85,6 +85,18 @@ def load_existing_results(output_file: str) -> tuple[pd.DataFrame, set[str]]:
         return pd.DataFrame(columns=['command', 'description']), set()
 
 async def generate_db(commands, clean_commands, processed_commands):
+    """Generate a database of commands with their descriptions.
+    
+    Args:
+        commands (list): List of shell commands to process
+        clean_commands (list): List to store processed commands with descriptions
+        processed_commands (set): Set of commands that have already been processed
+    
+    The function processes each command by:
+    1. Generating a description using the Groq API
+    2. Storing the command and description in clean_commands
+    3. Saving progress to CSV after each successful command
+    """
     for command in commands:
         # if "docker" in command and command not in processed_commands:
         if True:
@@ -122,12 +134,13 @@ async def main():
     )
     parser.add_argument('query', nargs='?', help='Natural language query to search for commands')
     parser.add_argument('--rebuild', action='store_true', help='Rebuild the command database')
+    parser.add_argument('-f', '--file', help='Specify an alternative history file to read from')
     args = parser.parse_args()
 
     output_file = "clean_commands_with_description_v0.csv"
     
     if args.rebuild:
-        commands = read_zsh_history()
+        commands = read_zsh_history(args.file)
         existing_df, processed_commands = load_existing_results(output_file)
         clean_commands = existing_df.to_dict('records')
         await generate_db(commands, clean_commands, processed_commands)
