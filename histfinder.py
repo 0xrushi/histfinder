@@ -86,7 +86,8 @@ def load_existing_results(output_file: str) -> tuple[pd.DataFrame, set[str]]:
 
 async def generate_db(commands, clean_commands, processed_commands):
     for command in commands:
-        if "docker" in command and command not in processed_commands:
+        # if "docker" in command and command not in processed_commands:
+        if True:
             try:
                 print(command)
                 description = await rebuild_description(command)
